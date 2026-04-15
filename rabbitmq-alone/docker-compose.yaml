@@ -1,0 +1,13 @@
+services:
+  mq-rabbit-alone:
+    image: rabbitmq:management-alpine
+    container_name: "rs-rabbitmq"
+    hostname: rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rs-rabbitmq-vol:/var/lib/rabbitmq
+
+volumes:
+  rs-rabbitmq-vol:

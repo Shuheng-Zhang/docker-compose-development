@@ -1,0 +1,13 @@
+volumes:
+  rs-mariadb-vol:
+
+services:
+  rs-mariadb:
+    image: mariadb:latest
+    container_name: rs-mariadb
+    ports:
+      - "3306:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
+    volumes:
+      - rs-mariadb-vol:/var/lib/mysql:Z

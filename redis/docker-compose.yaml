@@ -1,0 +1,12 @@
+services:
+  rs-redis:
+    image: redis:alpine
+    container_name: "rs-redis"
+    ports:
+      - "6379:6379"
+    volumes:
+      - rs-redis-vol:/data
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+
+volumes:
+  rs-redis-vol:

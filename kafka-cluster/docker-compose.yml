@@ -1,0 +1,142 @@
+networks:
+  kafka:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.29.0.0/24
+          gateway: 172.29.0.1
+    driver: bridge
+
+services:
+  kafka0:
+    image: "bitnami/kafka:latest"
+    container_name: kafka0
+    networks:
+      kafka:
+        ipv4_address: 172.29.0.2
+    volumes:
+      - ./kafka0-data:/bitnami/kafka
+    ports:
+      - "19092:9094"
+    environment:
+      # 启用Kraft 模式
+      - KAFKA_ENABLE_KRAFT=yes
+      # 启用明文非加密监听器
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      # 节点唯一ID
+      - KAFKA_CFG_NODE_ID=0
+      # 节点角色
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      # 配置安全协议
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,MIRROR:PLAINTEXT
+      # 配置节点服务端Socket监听端口
+      # 使用Docker内部IP和端口号
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094,MIRROR://:9095
+      # 配置外网访问地址
+      # 使用宿主机IP和端口号
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka0:9092,EXTERNAL://localhost:19092,MIRROR://kafka0:9095
+
+      - KAFKA_KRAFT_CLUSTER_ID=LelM2dIFQkiUFvXCEcqRWA
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@172.29.0.2:9093,1@172.29.0.3:9093,2@172.29.0.4:9093
+
+  kafka1:
+    image: "bitnami/kafka:latest"
+    container_name: kafka1
+    networks:
+      kafka:
+        ipv4_address: 172.29.0.3
+    volumes:
+      - ./kafka1-data:/bitnami/kafka
+    ports:
+      - "29092:9094"
+    environment:
+      # 启用Kraft 模式
+      - KAFKA_ENABLE_KRAFT=yes
+      # 启用明文非加密监听器
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      # 节点唯一ID
+      - KAFKA_CFG_NODE_ID=1
+      # 节点角色
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      # 配置安全协议
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,MIRROR:PLAINTEXT
+      # 配置节点服务端Socket监听端口
+      # 使用Docker内部IP和端口号
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094,MIRROR://:9095
+      # 配置外网访问地址
+      # 使用宿主机IP和端口号
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9092,EXTERNAL://localhost:29092,MIRROR://kafka1:9095
+
+      - KAFKA_KRAFT_CLUSTER_ID=LelM2dIFQkiUFvXCEcqRWA
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@172.29.0.2:9093,1@172.29.0.3:9093,2@172.29.0.4:9093
+
+  kafka2:
+    image: "bitnami/kafka:latest"
+    container_name: kafka2
+    networks:
+      kafka:
+        ipv4_address: 172.29.0.4
+    volumes:
+      - ./kafka2-data:/bitnami/kafka
+    ports:
+      - "39092:9094"
+    environment:
+      # 启用Kraft 模式
+      - KAFKA_ENABLE_KRAFT=yes
+      # 启用明文非加密监听器
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      # 节点唯一ID
+      - KAFKA_CFG_NODE_ID=2
+      # 节点角色
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      # 配置安全协议
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,MIRROR:PLAINTEXT
+      # 配置节点服务端Socket监听端口
+      # 使用Docker内部IP和端口号
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094,MIRROR://:9095
+      # 配置外网访问地址
+      # 使用宿主机IP和端口号
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:9092,EXTERNAL://localhost:39092,MIRROR://kafka2:9095
+
+      - KAFKA_KRAFT_CLUSTER_ID=LelM2dIFQkiUFvXCEcqRWA
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@172.29.0.2:9093,1@172.29.0.3:9093,2@172.29.0.4:9093
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    ports:
+      - 9001:8080
+    networks:
+      kafka:
+        ipv4_address: 172.29.0.5
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      # KAFKA_CLUSTERS_0_NAME: kafka-cluster
+      # KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka0:9095,kafka1:9095,kafka2:9095
+    volumes:
+      - ./kafka-ui/dynamic_config.yaml:/etc/kafkaui/dynamic_config.yaml
+    depends_on:
+      - kafka0
+      - kafka1
+      - kafka2
+
+  # kafka-map:
+  #   image: dushixiang/kafka-map
+  #   container_name: kafka-map
+  #   networks:
+  #     kafka:
+  #       ipv4_address: 172.29.0.6
+  #   ports:
+  #     - "9002:8080"
+  #   volumes:
+  #     - ./kafka-map:/usr/local/kafka-map/data
+  #   environment:
+  #     - DEFAULT_USERNAME=admin
+  #     - DEFAULT_PASSWORD=admin
+  #   depends_on:
+  #     - kafka0
+  #     - kafka1
+  #     - kafka2

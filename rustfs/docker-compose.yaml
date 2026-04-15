@@ -1,0 +1,20 @@
+volumes:
+  rs-rustfs-data-vol:
+  rs-rustfs-log-vol:
+
+services:
+  rs-rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rs-rustfs
+    environment:
+      RUSTFS_ACCESS_KEY: rustfs
+      RUSTFS_SECRET_KEY: 1q2w3e4r5t
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ENABLE: true
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+    ports:
+      - "9000:9000" # API port
+      - "9001:9001" # console port
+    volumes:
+      - rs-rustfs-data-vol:/data
+      - rs-rustfs-log-vol:/app/log

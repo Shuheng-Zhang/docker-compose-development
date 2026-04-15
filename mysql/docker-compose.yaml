@@ -1,0 +1,13 @@
+services:
+  rs-mysql:
+    image: mysql:latest
+    container_name: "rs-mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - rs-mysql-vol:/var/lib/mysql
+
+volumes:
+  rs-mysql-vol:
