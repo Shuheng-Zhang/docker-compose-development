@@ -13,4 +13,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - $PWD/postgresql.conf:/etc/postgresql/postgresql.conf
       - rs-postgres-vol:/var/lib/postgresql
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
