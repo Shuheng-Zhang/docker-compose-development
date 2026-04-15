@@ -41,7 +41,6 @@ RUN mkdir -p /tmp/build \
 
 
 RUN  cd /tmp/build/plv8 \
-  && export GYP_DEFINES="linux_use_bundled_binutils=0" \
   && make ${BIGINT_GRACEFUL_FLAG} \
   && strip plv8-${PLV8_VERSION}.so \
   && make install

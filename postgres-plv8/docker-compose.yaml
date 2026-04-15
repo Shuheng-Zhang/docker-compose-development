@@ -3,7 +3,7 @@ volumes:
 
 services:
   rs-postgres:
-    image: sibedge/postgres-plv8:18beta3-3.2.4-alpine
+    image: postgres-plv8:alpine
     container_name: "rs-postgres-js"
     environment:
       TZ: Asia/Shanghai
@@ -11,6 +11,8 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
     ports:
-      - "5432:5432"
+      - "5442:5432"
     volumes:
+      - $PWD/postgresql.conf:/etc/postgresql/postgresql.conf
       - rs-postgres-js-vol:/var/lib/postgresql
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
