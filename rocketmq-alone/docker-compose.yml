@@ -1,0 +1,72 @@
+networks:
+  net_rocketmq:
+    driver: bridge
+
+volumes:
+  rocket-dashboard-vol:
+
+services:
+  # 组件注册中心
+  rocket-namesrv:
+    image: ${ROCKET_IMAGE}
+    container_name: rocket-namesrv
+    networks:
+      - net_rocketmq
+    ports:
+      - "9876:9876"
+    environment:
+      - JAVA_OPT=-Xms128m -Xmx256m
+    volumes:
+      - ./data/namesrv/logs:/home/rocketmq/logs
+    command: ["sh", "mqnamesrv"]
+  # 消息中转
+  rocket-broker:
+    image: ${ROCKET_IMAGE}
+    container_name: rocket-broker
+    networks:
+      - net_rocketmq
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    environment:
+      - NAMESRV_ADDR=rocket-namesrv:9876
+      - JAVA_OPT=-Xms256m -Xmx512m
+    volumes:
+      - ./data/broker/logs:/home/rocketmq/logs
+      - ./data/broker/store:/home/rocketmq/store
+    command: ["sh", "mqbroker", "autoCreateTopicEnable=true"]
+    depends_on:
+      - rocket-namesrv
+  # 服务代理
+  rocket-proxy:
+    image: ${ROCKET_IMAGE}
+    container_name: rocket-proxy
+    networks:
+      - net_rocketmq
+    ports:
+      - "9880:8080"
+      - "9881:8081"
+    environment:
+      - NAMESRV_ADDR=rocket-namesrv:9876
+      - JAVA_OPT=-Xms128m -Xmx256m
+    volumes:
+      - ./data/proxy/logs:/home/rocketmq/logs
+    depends_on:
+      - rocket-broker
+      - rocket-namesrv
+    command: ["sh", "mqproxy"]
+  # 服务看板
+  rocket-dashboard:
+    image: ${DASHBOARD_IMAGE}
+    container_name: rocket-dashboard
+    networks:
+      - net_rocketmq
+    ports:
+      - "9899:8082"
+    environment:
+      - NAMESRV_ADDR=rocket-namesrv:9876
+      - JAVA_OPT=-Xms128m -Xmx256m -Drocketmq.namesrv.addr=rocket-namesrv:9876
+    volumes:
+      - rocket-dashboard-vol:/tmp
+    depends_on:
+      - rocket-namesrv
