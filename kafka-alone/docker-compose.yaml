@@ -18,6 +18,7 @@ services:
     ports:
       - "9092:9092"
     environment:
+      TZ: Asia/Shanghai
       # 必须设置唯一的 cluster ID（首次启动前生成）
       KAFKA_NODE_ID: 0
       KAFKA_PROCESS_ROLES: "broker,controller"
@@ -47,7 +48,9 @@ services:
     volumes:
       - rs-kafkamap-vol:/usr/local/kafka-map/data
     environment:
+      - TZ=Asia/Shanghai
       - DEFAULT_USERNAME=admin
       - DEFAULT_PASSWORD=1q2w3e4r5t
     depends_on:
       - rs-kafka
+
