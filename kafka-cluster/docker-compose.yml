@@ -3,21 +3,31 @@ networks:
     driver: bridge
 
 volumes:
-  cluster-kafka0-vol:
-  cluster-kafka1-vol:
-  cluster-kafka2-vol:
+  cluster-kafka0-data-vol:
+  cluster-kafka0-secrets-vol:
+  cluster-kafka0-config-vol:
+
+  cluster-kafka1-data-vol:
+  cluster-kafka1-secrets-vol:
+  cluster-kafka1-config-vol:
+
+  cluster-kafka2-data-vol:
+  cluster-kafka2-secrets-vol:
+  cluster-kafka2-config-vol:
+
   cluster-kafkamap-vol:
 
 services:
   kafka0:
     image: ${KAFKA_IMGAGE_VER}
-    container_name: cluster-kafka0
-    hostname: cluster-kafka0
+    container_name: kafka0
+    hostname: kafka0
     networks:
       - kafka-cluster
     ports:
       - "29092:9092"
     environment:
+      - TZ=Asia/Shanghai
       # 节点ID, 同一个集群内ID唯一
       - KAFKA_NODE_ID=0
       # 节点服务角色, controller 或 broker
@@ -37,57 +47,65 @@ services:
       # 公告监听器列表, 用于告知客户端(第三方应用)如何连接到服务节点
       # 对于内部通信, 使用 Docker DNS 解析(PLAINTEXT)
       # 对于外部通信, 使用宿主机IP和端口号(PLAINTEXT_HOST)
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://cluster-kafka0:19092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka0:19092,PLAINTEXT_HOST://localhost:29092
       # 为监听器配置安全协议, 定义形式: CONTROLLER_NAME:security_protocol
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       # 配置仲裁组成员和服务地址, 定义形式: nodeId@hostname:port
       # 采用内部通信
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@cluster-kafka0:9093,1@cluster-kafka1:9093,2@cluster-kafka2:9093
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@kafka0:9093,1@kafka1:9093,2@kafka2:9093
       # 配置消费者组在加入集群后立刻触发重平衡
       # 生产环境推荐使用默认间隔值
       - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
     volumes:
-      - cluster-kafka0-vol:/var/lib/kafka/data
+      - cluster-kafka0-data-vol:/var/lib/kafka/data
+      - cluster-kafka0-secrets-vol:/etc/kafka/secrets
+      - cluster-kafka0-config-vol:/mnt/shared/config
   kafka1:
     image: ${KAFKA_IMGAGE_VER}
-    container_name: cluster-kafka1
-    hostname: cluster-kafka1
+    container_name: kafka1
+    hostname: kafka1
     networks:
       - kafka-cluster
     ports:
       - "39092:9092"
     environment:
+      - TZ=Asia/Shanghai
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=controller,broker
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_LISTENERS=CONTROLLER://:9093,PLAINTEXT://:19092,PLAINTEXT_HOST://:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://cluster-kafka1:19092,PLAINTEXT_HOST://localhost:39092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:19092,PLAINTEXT_HOST://localhost:39092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@cluster-kafka0:9093,1@cluster-kafka1:9093,2@cluster-kafka2:9093
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@kafka0:9093,1@kafka1:9093,2@kafka2:9093
       - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
     volumes:
-      - cluster-kafka1-vol:/var/lib/kafka/data
+      - cluster-kafka1-data-vol:/var/lib/kafka/data
+      - cluster-kafka1-secrets-vol:/etc/kafka/secrets
+      - cluster-kafka1-config-vol:/mnt/shared/config
   kafka2:
     image: ${KAFKA_IMGAGE_VER}
-    container_name: cluster-kafka2
-    hostname: cluster-kafka2
+    container_name: kafka2
+    hostname: kafka2
     networks:
       - kafka-cluster
     ports:
       - "49092:9092"
     environment:
+      - TZ=Asia/Shanghai
       - KAFKA_NODE_ID=2
       - KAFKA_PROCESS_ROLES=controller,broker
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_LISTENERS=CONTROLLER://:9093,PLAINTEXT://:19092,PLAINTEXT_HOST://:9092
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://cluster-kafka2:19092,PLAINTEXT_HOST://localhost:49092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:19092,PLAINTEXT_HOST://localhost:49092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@cluster-kafka0:9093,1@cluster-kafka1:9093,2@cluster-kafka2:9093
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@kafka0:9093,1@kafka1:9093,2@kafka2:9093
       - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
     volumes:
-      - cluster-kafka2-vol:/var/lib/kafka/data
+      - cluster-kafka2-data-vol:/var/lib/kafka/data
+      - cluster-kafka2-secrets-vol:/etc/kafka/secrets
+      - cluster-kafka2-config-vol:/mnt/shared/config
 
   cluster-kafka-map:
     image: dushixiang/kafka-map
@@ -99,6 +117,7 @@ services:
     volumes:
       - cluster-kafkamap-vol:/usr/local/kafka-map/data
     environment:
+      - TZ=Asia/Shanghai
       - DEFAULT_USERNAME=admin
       - DEFAULT_PASSWORD=1q2w3e4r5t
     depends_on:
