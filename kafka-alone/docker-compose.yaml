@@ -11,7 +11,7 @@ networks:
 services:
   rs-kafka:
     image: apache/kafka:latest
-    container_name: kafka0
+    container_name: kafka-alone
     hostname: kafka0
     networks:
       - kafka-net
@@ -53,4 +53,3 @@ services:
       - DEFAULT_PASSWORD=1q2w3e4r5t
     depends_on:
       - rs-kafka
-
