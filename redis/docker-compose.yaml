@@ -1,12 +1,31 @@
+networks:
+  redis-net:
+    driver: bridge
+
+volumes:
+  rs-redis-vol:
+  rs-tinyrdm-vol:
+
 services:
   rs-redis:
     image: redis:alpine
     container_name: "rs-redis"
+    networks:
+      - redis-net
     ports:
       - "6379:6379"
     volumes:
       - rs-redis-vol:/data
     command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
-
-volumes:
-  rs-redis-vol:
+  rs-tinyrdm:
+    image: ghcr.io/tiny-craft/tiny-rdm:latest
+    container_name: tinyrdm
+    networks:
+      - redis-net
+    ports:
+      - "8086:8086"
+    environment:
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=1q2w3e4r5t
+    volumes:
+      - rs-tinyrdm-vol:/app/tinyrdm
