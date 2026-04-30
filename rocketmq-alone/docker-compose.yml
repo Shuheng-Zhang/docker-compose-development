@@ -3,6 +3,10 @@ networks:
     driver: bridge
 
 volumes:
+  rocket-namesrv-log-vol:
+  rocket-broker-log-vol:
+  rocket-broker-store-vol:
+  rocket-proxy-log-vol:
   rocket-dashboard-vol:
 
 services:
@@ -14,10 +18,10 @@ services:
       - net_rocketmq
     ports:
       - "9876:9876"
-    environment:
-      - JAVA_OPT=-Xms128m -Xmx256m
+    # environment:
+    #   - JAVA_OPT_EXT=-Xms256m -Xmx512m
     volumes:
-      - ./data/namesrv/logs:/home/rocketmq/logs
+      - rocket-namesrv-log-vol:/home/rocketmq/logs
     command: ["sh", "mqnamesrv"]
   # 消息中转
   rocket-broker:
@@ -30,11 +34,13 @@ services:
       - "10911:10911"
     environment:
       - NAMESRV_ADDR=rocket-namesrv:9876
-      - JAVA_OPT=-Xms256m -Xmx512m
+      # - JAVA_OPT_EXT=-Xms512m -Xmx768m
     volumes:
-      - ./data/broker/logs:/home/rocketmq/logs
-      - ./data/broker/store:/home/rocketmq/store
-    command: ["sh", "mqbroker", "autoCreateTopicEnable=true"]
+      - rocket-broker-log-vol:/home/rocketmq/logs
+      - rocket-broker-store-vol:/home/rocketmq/store
+      - ./broker.conf:/home/rocketmq/rocketmq-5.4.0/conf/broker.conf
+    command:
+      ["sh", "mqbroker", "-c", "/home/rocketmq/rocketmq-5.4.0/conf/broker.conf"]
     depends_on:
       - rocket-namesrv
   # 服务代理
@@ -48,13 +54,13 @@ services:
       - "9881:8081"
     environment:
       - NAMESRV_ADDR=rocket-namesrv:9876
-      - JAVA_OPT=-Xms128m -Xmx256m
+      # - JAVA_OPT_EXT=-Xms256m -Xmx320m
     volumes:
-      - ./data/proxy/logs:/home/rocketmq/logs
+      - rocket-proxy-log-vol:/home/rocketmq/logs
     depends_on:
       - rocket-broker
       - rocket-namesrv
-    command: ["sh", "mqproxy"]
+    command: ["sh", "-c", "sleep 15 && sh mqproxy"]
   # 服务看板
   rocket-dashboard:
     image: ${DASHBOARD_IMAGE}
